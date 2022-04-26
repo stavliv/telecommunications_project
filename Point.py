@@ -1,4 +1,4 @@
-from math import sqrt, isclose, log10, floor
+from math import sqrt, isclose,  floor, log10
 
 
 class Point:
@@ -18,18 +18,24 @@ class Point:
 
     def _gen_hash(self):
 
-        if (self.x == 0.0) or (self.y == 0.0):
-            return hash((0.0, 0.0))
         sig = 8
 
-        x_scale = 10**(sig - int(floor(log10(abs(self.x))) - 1))
-        y_scale = 10**(sig - int(floor(log10(abs(self.y))) - 1))
+        if (self.x != 0.0):
+            x_scale = int(floor(log10(abs(self.x))))
+        else:
+            x_scale = 0
+
+        if (self.y != 0.0):
+            y_scale = int(floor(log10(abs(self.y))))
+        else:
+            y_scale = 0
+
         # How much to scale x and y to get 'sig' non-decimal digits
 
         x_rounded = round(self.x, sig - x_scale - 1)
         y_rounded = round(self.y, sig - y_scale - 1)
 
-        # round x and y to one 8th of their value
+        # round x and y to 8 significant digits
         # (eg 1234.56789 will be rounded to 1234.5678
         # 12345678942 will be rounded to 12345679000 etx)
         return hash((x_rounded, y_rounded))
@@ -48,3 +54,6 @@ class Point:
 
     def __rmul__(self, a: int):
         return self.__mul__(a)
+
+
+Point(123456789, 0.123456789).__hash__()
