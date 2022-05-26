@@ -16,11 +16,11 @@ class DetectionMethod(metaclass=ABCMeta):
         self.name = name
     
     @abstractmethod
-    def detect(self, received_point: tuple, *args) -> Point:
+    def detect(self, received_point: Point, *args) -> Point:
         pass
 
     @abstractmethod
-    def bool_detect(self, transmitted_point : Point, received_point: tuple, *args) -> bool:
+    def bool_detect(self, transmitted_point : Point, received_point: Point, *args) -> bool:
         pass
     
     @staticmethod
@@ -44,15 +44,15 @@ class DetectionMethod(metaclass=ABCMeta):
                 [polygon[0][i][1] for i in range(polygon.nPoints())])
 
     @staticmethod
-    def get_quadrants(point: tuple):
+    def get_quadrants(point: Point):
         quadrants = list()
-        if (point[0] >= 0 or isclose(point[0], 0, abs_tol=1e-08)) and (point[1] >= 0 or isclose(point[1], 0, abs_tol=1e-08)):
+        if (point.x >= 0 or isclose(point.x, 0, abs_tol=1e-08)) and (point.y >= 0 or isclose(point.y, 0, abs_tol=1e-08)):
             quadrants.append(0)
-        if (point[0] <= 0 or isclose(point[0], 0, abs_tol=1e-08)) and (point[1] >= 0 or isclose(point[1], 0, abs_tol=1e-08)):
+        if (point.x <= 0 or isclose(point.x, 0, abs_tol=1e-08)) and (point.y >= 0 or isclose(point.y, 0, abs_tol=1e-08)):
             quadrants.append(1)
-        if (point[0] <= 0 or isclose(point[0], 0, abs_tol=1e-08)) and (point[1] <= 0 or isclose(point[1], 0, abs_tol=1e-08)):
+        if (point.x <= 0 or isclose(point.x, 0, abs_tol=1e-08)) and (point.y <= 0 or isclose(point.y, 0, abs_tol=1e-08)):
             quadrants.append(2)
-        if (point[0] >= 0 or isclose(point[0], 0, abs_tol=1e-08)) and (point[1] <= 0 or isclose(point[1], 0, abs_tol=1e-08)):
+        if (point.x >= 0 or isclose(point.x, 0, abs_tol=1e-08)) and (point.y <= 0 or isclose(point.y, 0, abs_tol=1e-08)):
             quadrants.append(3)
         return quadrants
 
@@ -61,16 +61,16 @@ class MLD(DetectionMethod):
     def __init__(self, points, *args, name="MLD"):
         super().__init__(points, name)
     
-    def detect(self, received_point: tuple) -> Point:
+    def detect(self, received_point: Point) -> Point:
         min_dist = float("inf")
         for point in self.points:
-            dist = sqrt((point.x - received_point[0])**2 + (point.y - received_point[1])**2)
+            dist = (point.x - received_point.x)**2 + (point.y - received_point.y)**2
             if dist < min_dist:
                 min_dist = dist
                 nearest_symbol = point
         return nearest_symbol
 
-    def bool_detect(self, transmitted_point : Point, received_point: tuple) -> bool:
+    def bool_detect(self, transmitted_point : Point, received_point: Point) -> bool:
         detected_point = self.detect(received_point)
         return bool(detected_point == transmitted_point)
 
@@ -131,11 +131,11 @@ class ThrassosDetector(DetectionMethod):
         high = bisect_right(sorted_list, upper_bound)
         return range(low, high)
 
-    def detect(self, received_point: tuple):
+    def detect(self, received_point: Point):
         candidates = set()
-        x = self.binary_search(list(self.Sx), received_point[0] - self.hexGridGenerator.d_min, received_point[0] + self.hexGridGenerator.d_min)
+        x = self.binary_search(list(self.Sx), received_point.x - self.hexGridGenerator.d_min, received_point.x + self.hexGridGenerator.d_min)
         for i in x:
-            y = self.binary_search([item[1] for item in self.A[self.Sx[i]]], received_point[1] - self.hexGridGenerator.d_min, received_point[1] + self.hexGridGenerator.d_min)
+            y = self.binary_search([item[1] for item in self.A[self.Sx[i]]], received_point.y - self.hexGridGenerator.d_min, received_point.y + self.hexGridGenerator.d_min)
             for j in y:
                 candidates.add(self.A[self.Sx[i]][j][0])
         if not candidates:
@@ -146,16 +146,9 @@ class ThrassosDetector(DetectionMethod):
         nearest_symbol = mld.detect(received_point)
         return nearest_symbol  
 
-    def bool_detect(self, transmitted_point: Point, received_point: tuple, *args) -> bool:
+    def bool_detect(self, transmitted_point: Point, received_point: Point, *args) -> bool:
         detected_point = self.detect(received_point)
         return bool(detected_point == transmitted_point)
-
-class MyDetector(DetectionMethod):
-    def __init__(points, name):
-        super.__init__(points, name)
-
-    def detetct(self, received_point):
-        pass
 
 
 if __name__ == '__main__':
@@ -178,7 +171,7 @@ if __name__ == '__main__':
     detection = ThrassosDetector(points, gen)
     received_point = (3, 0)
     detected_point = detection.detect(received_point)
-    print(f"received point: {received_point[0], received_point[1]}, detected point: {(detected_point.x, detected_point.y)}")
+    print(f"received point: {received_point.x, received_point.y}, detected point: {(detected_point.x, detected_point.y)}")
 
 
     

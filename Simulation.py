@@ -8,6 +8,8 @@ from matplotlib import pyplot as plt
 import random
 import numpy as np
 
+from Point import Point
+
 STEPS = 100000 
 
 class Simulation:
@@ -31,7 +33,7 @@ class Simulation:
         return random.choice(list(points))
     
     def add_gaussian_noise(self, point, n0):
-        return (point.x + np.random.normal(loc=0.0, scale=sqrt(n0/2)), point.y + np.random.normal(loc=0.0, scale=sqrt(n0/2)))
+        return Point(point.x + np.random.normal(loc=0.0, scale=sqrt(n0/2)), point.y + np.random.normal(loc=0.0, scale=sqrt(n0/2)))
 
     def simulate_single(self, snr, hexGridGenerator, points, energy):
         n0 = energy / (10**(snr / 10)) # n0 must not be in db
@@ -210,9 +212,9 @@ def rugini_approx(M, w):
 
 if __name__ == '__main__':
     simulation = Simulation([16, 32, 64, 128, 256, 512, 1024], 1, 40, [MLD, ThrassosDetector])
-    simulation.sep[MLD] = np.loadtxt("sep_1MLD")
-    simulation.sep[ThrassosDetector] = np.loadtxt("sep_1Thrassos' method")
-    #simulation.simulate()
-    #simulation.plot_approx()
-    #simulation.plot_upper_bounds()
+    #simulation.sep[MLD] = np.loadtxt("sep_1MLD")
+    #simulation.sep[ThrassosDetector] = np.loadtxt("sep_1Thrassos' method")
+    simulation.simulate()
+    simulation.plot_approx()
+    simulation.plot_upper_bounds()
     simulation.plot_detection_methods()
