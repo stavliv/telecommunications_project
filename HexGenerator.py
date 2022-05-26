@@ -65,3 +65,17 @@ class HexGridGenerator:
                     self.available_neighbours[point_to_add].remove(neighbour)
 
         return self.outer_points.union(self.inner_points)
+    
+    def compute_av_energy(self, points):
+        res = 0
+        for point in points:
+            res += point.dist_from_origin ** 2
+        res = float(res) / len(points)
+        return res
+
+    def plot(self, points):
+        for point in points:
+            plt.scatter(point.x, point.y, color="black", s=1)
+
+        plt.axis('scaled')
+        #plt.show() 
