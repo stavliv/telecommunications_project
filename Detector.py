@@ -70,20 +70,9 @@ class MLD(DetectionMethod):
                 nearest_symbol = point
         return nearest_symbol
 
-    def bool_detect(self, transmitted_point : Point, received_point: tuple, hexGridGenerator) -> bool:
-        # mld regions for inner points are already known (hexagonals)
-        if transmitted_point in hexGridGenerator.inner_points:
-            if abs(received_point[0] - transmitted_point.x) <= hexGridGenerator.d_min/2 and abs(received_point[1] - transmitted_point.y) <= ((hexGridGenerator.d_min - abs(received_point[0] - transmitted_point.x) / sqrt(3))):
-                return True
-            return False
-        # for outer points we just look if there is a symbol with smaller distance from the received point than the transmitted point
-        elif transmitted_point in hexGridGenerator.outer_points:
-            dist = sqrt((transmitted_point.x - received_point[0]) ** 2 + (transmitted_point.y - received_point[1]) ** 2)
-            for point in reversed(list(self.points)): #traverse points in reverse order - more likely to mistake an outer symbol for another outer(ish) symbol
-                cur_dist = sqrt((point.x - received_point[0]) ** 2 + (point.y - received_point[1]) ** 2)
-                if cur_dist < dist:
-                    return False
-            return True
+    def bool_detect(self, transmitted_point : Point, received_point: tuple) -> bool:
+        detected_point = self.detect(received_point)
+        return bool(detected_point == transmitted_point)
 
 
 class ThrassosDetector(DetectionMethod):
@@ -161,9 +150,20 @@ class ThrassosDetector(DetectionMethod):
         detected_point = self.detect(received_point)
         return bool(detected_point == transmitted_point)
 
+class MyDetector(DetectionMethod):
+    def __init__(points, name):
+        super.__init__(points, name)
+
+    def detetct(self, received_point):
+        pass
 
 
 if __name__ == '__main__':
+
+    pass
+
+
+    """
     gen = HexGridGenerator(1)
     points = gen.generate(31)
     #gen.plot(points)
@@ -181,7 +181,7 @@ if __name__ == '__main__':
     print(f"received point: {received_point[0], received_point[1]}, detected point: {(detected_point.x, detected_point.y)}")
 
 
-    """
+    
     debug infinite regions
     for i in range(4):
         print(f"points with infinite area in quadrant {i + 1}:\n{[(point.x, point.y) for point in detection.Q[i]]}")

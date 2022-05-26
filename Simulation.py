@@ -44,9 +44,9 @@ class Simulation:
 
         for step in range(STEPS):
             point = self.pick_point(points)
-            point_after_noise = self.add_gaussian_noise(point, n0)    
+            point_after_noise = self.add_gaussian_noise(point, n0)  
             for detection_method in self.detection_methods:
-                correct_detection = detector[detection_method].bool_detect(point, point_after_noise, hexGridGenerator)
+                correct_detection = detector[detection_method].bool_detect(point, point_after_noise)
                 sep[detection_method] = sep[detection_method] + (1 / (step + 1)) * ((not correct_detection).real - sep[detection_method])
         return sep
 
@@ -107,8 +107,14 @@ class Simulation:
         fig, ax = plt.subplots()
         for i in range(len(self.orders)):
             ax.plot(self.snr_values, self.sep[MLD][i], label=f"{self.orders[i]}-HQAM (sim.)", linestyle="", marker='o')
-            ax.plot(x, thrassos[i], label="M-HQAM (approx.)", color='k')
-            ax.plot(x, rugini[i], label="M-HQAM (approx.)", linestyle='--', color='gray')
+            if i == len(self.orders) - 1:
+                label_1 = "M-HQAM (approx.)"
+                label_2 = "M-HQAM ([8] approx.)"
+            else:
+                label_1 = ""
+                label_2 = ""
+            ax.plot(x, thrassos[i], label=label_1, color='k')
+            ax.plot(x, rugini[i], label=label_2, linestyle='--', color='gray')
 
         ax.set_yscale('log')
         ax.set_ylim([1e-05, 1])
@@ -150,8 +156,14 @@ class Simulation:
         fig, ax = plt.subplots()
         for i in range(len(self.orders)):
             ax.plot(self.snr_values, self.sep[MLD][i], label=f"{self.orders[i]}-HQAM (sim.)", linestyle="", marker='o')
-            ax.plot(x, upper_1[i], label="upper bound (remark 1)", color='k')
-            ax.plot(x, upper_2[i], label="upper bound (remark 2)", linestyle='--', color='gray')
+            if i == len(self.orders) - 1:
+                label_1 = "upper bound (remark 1)"
+                label_2 = "upper bound (remark 2)"
+            else:
+                label_1 = ""
+                label_2 = ""
+            ax.plot(x, upper_1[i], label=label_1, color='k')
+            ax.plot(x, upper_2[i], label=label_2, linestyle='--', color='gray')
 
         ax.set_yscale('log')
         ax.set_ylim([1e-05, 1])
@@ -164,17 +176,20 @@ class Simulation:
     def plot_detection_methods(self):
         fig, ax = plt.subplots()
         for i in range(len(self.orders)):
+            if i == len(self.orders) - 1:
+                label_1 = "proposed detection"
+            else:
+                label_1 = ""
             ax.plot(self.snr_values, self.sep[MLD][i], label=f"MLD {self.orders[i]}-HQAM (sim.)", linestyle="", marker='o')
-            ax.plot(self.snr_values, self.sep[ThrassosDetector][i], label=f"proposed detection {self.orders[i]}-HQAM (sim.)", linestyle='-', color='k')
+            ax.plot(self.snr_values, self.sep[ThrassosDetector][i], label=label_1, linestyle='-', color='k')
 
         ax.set_yscale('log')
         ax.set_ylim([1e-05, 1])
         ax.legend()
-        ax.set(xlabel="Es/N0 (dB)", ylabel="Symbol Error Probability")
+        ax.set(xlabel="Es/N0 (dB)", ylabel="Symbol Error Rate")
         fig.savefig("detection_methods.png")
         plt.show()
         plt.close()
-
 
 
 def qfunc(x):
@@ -195,9 +210,9 @@ def rugini_approx(M, w):
 
 if __name__ == '__main__':
     simulation = Simulation([16, 32, 64, 128, 256, 512, 1024], 1, 40, [MLD, ThrassosDetector])
-    simulation.sep[MLD] = np.loadtxt("sep_MLD")
-    simulation.sep[ThrassosDetector] = np.loadtxt("sep_Thrassos' method")
-    simulation.simulate()
-    simulation.plot_approx()
-    simulation.plot_upper_bounds()
+    simulation.sep[MLD] = np.loadtxt("sep_1MLD")
+    simulation.sep[ThrassosDetector] = np.loadtxt("sep_1Thrassos' method")
+    #simulation.simulate()
+    #simulation.plot_approx()
+    #simulation.plot_upper_bounds()
     simulation.plot_detection_methods()
