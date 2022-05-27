@@ -1,34 +1,31 @@
-from cmath import inf
-import numpy as np
 from math import sqrt, isclose
 from abc import ABCMeta, abstractmethod
 from Point import Point
-from HexGenerator import HexGridGenerator
 from matplotlib import pyplot as plt
-from scipy.spatial import Voronoi, voronoi_plot_2d
 from Polygon import Polygon
 from bisect import bisect_left, bisect_right
-from time import time
+
 
 class DetectionMethod(metaclass=ABCMeta):
     def __init__(self, points, name):
         self.points = points
         self.name = name
-    
+
     @abstractmethod
     def detect(self, received_point: Point, *args) -> Point:
         pass
 
     @abstractmethod
-    def bool_detect(self, transmitted_point : Point, received_point: Point, *args) -> bool:
+    def bool_detect(self, transmitted_point: Point, received_point: Point) -> bool:
         pass
-    
+
     @staticmethod
     def get_voronoi_polygons(points):
         voronoi_polygons = dict()
-        ext = 10*max(points, key=lambda point: point.dist_from_origin).dist_from_origin
+        ext = 10 * \
+            max(points, key=lambda point: point.dist_from_origin).dist_from_origin
         voronoi = Voronoi([[point.x, point.y] for point in points] +
-                        [[ext, 0], [0, -ext], [0, ext], [-ext, 0]])
+                          [[ext, 0], [0, -ext], [0, ext], [-ext, 0]])
 
         points = list(points)
         for i in range(len(points)):
@@ -37,11 +34,11 @@ class DetectionMethod(metaclass=ABCMeta):
                 pol = Polygon([voronoi.vertices[j] for j in region])
                 voronoi_polygons[points[i]] = pol
         return voronoi_polygons
-    
+
     @staticmethod
     def draw_polygon(polygon: Polygon, plt: plt):
         plt.fill([polygon[0][i][0] for i in range(polygon.nPoints())],
-                [polygon[0][i][1] for i in range(polygon.nPoints())])
+                 [polygon[0][i][1] for i in range(polygon.nPoints())])
 
     @staticmethod
     def get_quadrants(point: Point):
@@ -60,17 +57,18 @@ class DetectionMethod(metaclass=ABCMeta):
 class MLD(DetectionMethod):
     def __init__(self, points, *args, name="MLD"):
         super().__init__(points, name)
-    
+
     def detect(self, received_point: Point) -> Point:
         min_dist = float("inf")
         for point in self.points:
-            dist = (point.x - received_point.x)**2 + (point.y - received_point.y)**2
+            dist = (point.x - received_point.x)**2 + \
+                (point.y - received_point.y)**2
             if dist < min_dist:
                 min_dist = dist
                 nearest_symbol = point
         return nearest_symbol
 
-    def bool_detect(self, transmitted_point : Point, received_point: Point) -> bool:
+    def bool_detect(self, transmitted_point: Point, received_point: Point) -> bool:
         detected_point = self.detect(received_point)
         return bool(detected_point == transmitted_point)
 
@@ -92,8 +90,8 @@ class ThrassosDetector(DetectionMethod):
         res.sort()
         return res
 
-    def create_A(self):    
-        A = dict()       
+    def create_A(self):
+        A = dict()
         for point in self.points:
             if point.x in A.keys():
                 if len(A[point.x]) < sqrt(len(self.points)):
@@ -101,8 +99,8 @@ class ThrassosDetector(DetectionMethod):
             else:
                 A[point.x] = list()
                 A[point.x].append((point, point.y))
-            
-        for Ai in A.values():       
+
+        for Ai in A.values():
             Ai.sort(key=lambda p: p[1])
         return A
 
@@ -112,12 +110,17 @@ class ThrassosDetector(DetectionMethod):
         polygons = self.get_voronoi_polygons(self.points)
 
         quadrants = list()
-        ext = 10*max(self.points, key=lambda point: point.dist_from_origin).dist_from_origin
-        quadrants.append(Polygon([[ext/5, 0], [0, ext/5], [0, ext], [ext, ext], [ext, 0]]))
-        quadrants.append(Polygon([[-ext/5, 0], [0, ext/5], [0, ext], [-ext, ext], [-ext, 0]]))
-        quadrants.append(Polygon([[-ext/5, 0], [0, -ext/5], [0, -ext], [-ext, -ext], [-ext, 0]]))
-        quadrants.append(Polygon([[ext/5, 0], [0, -ext/5], [0, -ext], [ext, -ext], [ext, 0]]))
-        
+        ext = 10*max(self.points,
+                     key=lambda point: point.dist_from_origin).dist_from_origin
+        quadrants.append(
+            Polygon([[ext/5, 0], [0, ext/5], [0, ext], [ext, ext], [ext, 0]]))
+        quadrants.append(
+            Polygon([[-ext/5, 0], [0, ext/5], [0, ext], [-ext, ext], [-ext, 0]]))
+        quadrants.append(
+            Polygon([[-ext/5, 0], [0, -ext/5], [0, -ext], [-ext, -ext], [-ext, 0]]))
+        quadrants.append(
+            Polygon([[ext/5, 0], [0, -ext/5], [0, -ext], [ext, -ext], [ext, 0]]))
+
         for point, polygon in polygons.items():
             for j in range(len(quadrants)):
                 if polygon.overlaps(quadrants[j]):
@@ -133,9 +136,11 @@ class ThrassosDetector(DetectionMethod):
 
     def detect(self, received_point: Point):
         candidates = set()
-        x = self.binary_search(list(self.Sx), received_point.x - self.hexGridGenerator.d_min, received_point.x + self.hexGridGenerator.d_min)
+        x = self.binary_search(list(self.Sx), received_point.x -
+                               self.hexGridGenerator.d_min, received_point.x + self.hexGridGenerator.d_min)
         for i in x:
-            y = self.binary_search([item[1] for item in self.A[self.Sx[i]]], received_point.y - self.hexGridGenerator.d_min, received_point.y + self.hexGridGenerator.d_min)
+            y = self.binary_search([item[1] for item in self.A[self.Sx[i]]], received_point.y -
+                                   self.hexGridGenerator.d_min, received_point.y + self.hexGridGenerator.d_min)
             for j in y:
                 candidates.add(self.A[self.Sx[i]][j][0])
         if not candidates:
@@ -144,44 +149,8 @@ class ThrassosDetector(DetectionMethod):
                 candidates.update(self.Q[quadrant])
         mld = MLD(candidates)
         nearest_symbol = mld.detect(received_point)
-        return nearest_symbol  
+        return nearest_symbol
 
-    def bool_detect(self, transmitted_point: Point, received_point: Point, *args) -> bool:
+    def bool_detect(self, transmitted_point: Point, received_point: Point) -> bool:
         detected_point = self.detect(received_point)
         return bool(detected_point == transmitted_point)
-
-
-if __name__ == '__main__':
-
-    pass
-
-
-    """
-    gen = HexGridGenerator(1)
-    points = gen.generate(31)
-    #gen.plot(points)
-
-    ext = 10*max(points, key=lambda point: point.dist_from_origin).dist_from_origin
-    vor = Voronoi([[point.x, point.y] for point in points] 
-                        )
-    voronoi_plot_2d(vor)
-    plt.savefig("plot.png")
-    plt.show()
-
-    detection = ThrassosDetector(points, gen)
-    received_point = (3, 0)
-    detected_point = detection.detect(received_point)
-    print(f"received point: {received_point.x, received_point.y}, detected point: {(detected_point.x, detected_point.y)}")
-
-
-    
-    debug infinite regions
-    for i in range(4):
-        print(f"points with infinite area in quadrant {i + 1}:\n{[(point.x, point.y) for point in detection.Q[i]]}")
-    
-    plt.savefig("plot.png")
-    plt.show()
-    """
-
-    
-    
