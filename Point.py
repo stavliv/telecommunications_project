@@ -9,7 +9,8 @@ class Point:
         self._hash = None
 
     def __eq__(self, other: object) -> bool:
-        return (isclose(self.x, other.x) and isclose(self.y, other.y))
+        return (isclose(self.x, other.x, abs_tol=10**-6)
+                and isclose(self.y, other.y, abs_tol=10**-6))
 
     def __hash__(self):
         if(self._hash is None):
@@ -18,7 +19,7 @@ class Point:
 
     def _gen_hash(self):
 
-        sig = 8
+        sig = 6
 
         if (self.x != 0.0):
             x_scale = int(floor(log10(abs(self.x))))
@@ -55,5 +56,5 @@ class Point:
     def __rmul__(self, a: int):
         return self.__mul__(a)
 
-
-Point(123456789, 0.123456789).__hash__()
+    def __gt__(self, other: object):
+        return self.dist_from_origin > other.dist_from_origin

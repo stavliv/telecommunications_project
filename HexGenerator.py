@@ -1,8 +1,6 @@
 from math import sqrt
 from Point import Point
 
-h = Point(7, 2)
-
 
 class HexGridGenerator:
 
@@ -14,6 +12,11 @@ class HexGridGenerator:
         # set of all outer points (with available neighbours)
 
         self.available_neighbours = dict()
+
+        self.v0 = Point(self.d_min/2.0, 0)
+        self.v1 = Point(0, self.d_min * sqrt(3)/2.0)
+        # keep xmin/max and ymin/max for bounding box
+
         # key: any point
         # value:set of available neighbours
 
@@ -32,9 +35,8 @@ class HexGridGenerator:
         return min_point
 
     def calculateNeighbours(self, point):
-
-        v0 = Point(self.d_min/2.0, 0)
-        v1 = Point(0, self.d_min * sqrt(3)/2.0)
+        v0 = self.v0
+        v1 = self.v1
         return {point + 2*v0, point - 2*v0,
                 point + v0 + v1, point - v0 - v1,
                 point + v0 - v1, point - v0 + v1}
@@ -57,11 +59,11 @@ class HexGridGenerator:
             for neighbour in self.available_neighbours[point_to_add].copy():
                 if (neighbour in self.outer_points):
                     self.available_neighbours[neighbour].remove(point_to_add)
+                    self.available_neighbours[point_to_add].remove(neighbour)
+
                     if len(self.available_neighbours[neighbour]) == 0:
                         self.available_neighbours.pop(neighbour)
                         self.outer_points.remove(neighbour)
                         self.inner_points.add(neighbour)
-
-                    self.available_neighbours[point_to_add].remove(neighbour)
 
         return self.outer_points.union(self.inner_points)
