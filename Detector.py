@@ -55,7 +55,7 @@ class DetectionMethod(metaclass=ABCMeta):
 
 
 class MLD(DetectionMethod):
-    def __init__(self, points, *args, name="MLD"):
+    def __init__(self, points, name="MLD"):
         super().__init__(points, name)
 
     def detect(self, received_point: Point) -> Point:
