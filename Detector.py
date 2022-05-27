@@ -4,6 +4,7 @@ from Point import Point
 from matplotlib import pyplot as plt
 from Polygon import Polygon
 from bisect import bisect_left, bisect_right
+from scipy.spatial import Voronoi
 
 
 class DetectionMethod(metaclass=ABCMeta):
