@@ -43,7 +43,7 @@ class HexGridGenerator:
 
     def generate(self, n_points: int):
 
-        for _ in range(n_points):
+        for _ in range(n_points-1):
             closest_point = self.findClosestPoint(self.outer_points)
 
             closest_point_neighbours = self.available_neighbours[closest_point]
@@ -67,7 +67,7 @@ class HexGridGenerator:
                         self.inner_points.add(neighbour)
 
         return self.outer_points.union(self.inner_points)
-    
+
     def compute_av_energy(self, points):
         res = 0
         for point in points:
@@ -80,4 +80,4 @@ class HexGridGenerator:
             plt.scatter(point.x, point.y, color="black", s=1)
 
         plt.axis('scaled')
-        #plt.show() 
+        # plt.show()
