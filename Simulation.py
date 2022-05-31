@@ -1,5 +1,3 @@
-from turtle import color
-from scipy.spatial import Voronoi, voronoi_plot_2d
 from scipy import special as sp
 from math import sqrt, exp
 from HexGenerator import HexGridGenerator
@@ -7,7 +5,6 @@ from Detector import MLD, ThrassosDetector
 from matplotlib import pyplot as plt
 import random
 import numpy as np
-
 from Point import Point
 
 STEPS = 100000
@@ -76,6 +73,51 @@ class Simulation:
             np.savetxt("sep_1" + detection_method([], None).name,
                        self.sep[detection_method])
 
+    def compute_nrmse(self):
+        b = dict()
+        b[16] = 10.0
+        b[32] = 13.0
+        b[64] = 22.0
+        b[128] = 27.0
+        b[256] = 46.0
+        b[512] = 64.0
+        b[1024] = 128.0
+
+        k = dict()
+        k[16] = 0.8711505
+        k[32] = 0.7233274
+        k[64] = 0.5222431
+        k[128] = 0.5088351
+        k[256] = 0.3936315
+        k[512] = 0.3672311
+        k[1024] = 0.2982858
+
+        a = dict()
+        a[16] = 9.0
+        a[32] = 17.75
+        a[64] = 37.0
+        a[128] = 72.0
+        a[256] = 149.0
+        a[512] = 289.06
+        a[1024] = 597.0
+
+        thrassos = np.ones((len(self.orders), len(self.snr_values)))
+        rugini = np.ones((len(self.orders), len(self.snr_values)))
+        for i in range(len(self.orders)):
+            M = self.orders[i]
+            for j in range((len(self.snr_values))):
+                w = (10**(self.snr_values[j] / 10))
+                rugini[i][j] = rugini_approx(M, w)
+                thrassos[i][j] = thrassos_approx(
+                    M, w, a[self.orders[i]], b[self.orders[i]], k[self.orders[i]])
+
+        metric = dict()
+        for i in range(len(self.orders)):
+            thr = nrmse(self.sep[MLD][i], thrassos[i])
+            rug = nrmse(self.sep[MLD][i], rugini[i])
+            metric[self.orders[i]] = {"thrassos" : thr, "rugini" : rug}
+        return metric
+
     def plot_approx(self):
         b = dict()
         b[16] = 10.0
@@ -130,7 +172,7 @@ class Simulation:
 
         ax.set_yscale('log')
         ax.set_ylim([1e-05, 1])
-        ax.legend()
+        #ax.legend()
         ax.set(xlabel="Es/N0 (dB)", ylabel="Symbol Error Probability")
         fig.savefig("approximations.png")
         plt.show()
@@ -202,7 +244,7 @@ class Simulation:
 
         ax.set_yscale('log')
         ax.set_ylim([1e-05, 1])
-        ax.legend()
+        #ax.legend()
         ax.set(xlabel="Es/N0 (dB)", ylabel="Symbol Error Rate")
         fig.savefig("detection_methods.png")
         plt.show()
@@ -212,19 +254,29 @@ class Simulation:
 def qfunc(x):
     return 0.5-0.5*sp.erf(x/sqrt(2))
 
-
 def thrassos_approx(M, w, a, b, k):
     l1 = (4 * k**2) / (3 * a)
     l2 = (4 * k * (1 - k)) / (sqrt(3) * a)
     l3 = (1 - k)**2 / a
     return ((2*M - b) / (2*M)) * exp(-w*(l1 + l2 + l3)) + (b / M) * qfunc(sqrt(2 * w * l1) + sqrt(2 * w * l3))
 
-
 def rugini_approx(M, w):
     a = 24.0 / (7*M - 4)
     K = 2 * (3 - 4 * M**(-1/2) + M**(-1))
     Kc = 6 * (1 - M**(-1/2)) ** 2
     return K * qfunc(sqrt(a * w)) + (2/3) * Kc * qfunc(sqrt(2 * a * w / 3)) ** 2 - 2 * Kc * qfunc(sqrt(a * w)) * qfunc(sqrt(a * w / 3))
+
+def _error(actual: np.ndarray, predicted: np.ndarray):
+    return actual - predicted
+
+def mse(actual: np.ndarray, predicted: np.ndarray):
+    return np.mean(np.square(_error(actual, predicted)))
+
+def rmse(actual: np.ndarray, predicted: np.ndarray):
+    return np.sqrt(mse(actual, predicted))
+
+def nrmse(actual: np.ndarray, predicted: np.ndarray):
+    return rmse(actual, predicted) / (actual.max() - actual.min())
 
 
 if __name__ == '__main__':
@@ -236,3 +288,4 @@ if __name__ == '__main__':
     simulation.plot_approx()
     simulation.plot_upper_bounds()
     simulation.plot_detection_methods()
+    print(simulation.compute_nrmse())
