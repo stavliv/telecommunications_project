@@ -68,13 +68,3 @@ class RegHQAMGenerator:
             res += point.dist_from_origin ** 2
         res = float(res) / len(points)
         return res
-
-
-gen = RegHQAMGenerator(0.4)
-points = gen.generate(1028)
-
-for point in points:
-    plt.scatter(point.x, point.y, color="black", s=0.1)
-
-plt.axis('scaled')
-plt.show()
