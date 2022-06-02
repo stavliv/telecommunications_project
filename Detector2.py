@@ -16,7 +16,7 @@ class Detector2:
 
         return x_bounds, y_bounds
 
-    def __init__(self, d_min, points, voronoi_polygons, subdiv=8):
+    def __init__(self, d_min, points, voronoi_polygons, subdiv=8, padding=0):
         self.points = list(points)
 
         voronoi_to_point_index = Detector2._get_voronoi_to_point_index_map(
@@ -25,14 +25,14 @@ class Detector2:
         x_bounds, y_bounds = Detector2.get_bounds(self.points)
 
         self.x_subdiv = subdiv
-        x_padding = 0
+        x_padding = padding
 
         self.x_start = x_bounds[0] - d_min/2 - x_padding
-        self.x_end = x_bounds[1] + d_min/2 - x_padding
+        self.x_end = x_bounds[1] + d_min/2 + x_padding
         self.x_step = (self.x_end - self.x_start)/self.x_subdiv
 
         self.y_subdiv = subdiv
-        y_padding = 0
+        y_padding = padding
 
         self.y_start = y_bounds[0] - d_min/sqrt(3) - y_padding
         self.y_end = y_bounds[1] + d_min/sqrt(3) + y_padding
@@ -76,7 +76,7 @@ class Detector2:
         x_i = int((received_point.x - self.x_start)//self.x_step)
         y_i = int((received_point.y - self.y_start)//self.y_step)
         if x_i < 0 or x_i >= self.x_subdiv or y_i < 0 or y_i >= self.y_subdiv:
-            print("ERROR: Out of Bounds")
+            # print("ERROR: Out of Bounds")
             return -1
 
         min_distance = float('inf')
