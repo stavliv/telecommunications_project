@@ -32,7 +32,7 @@ class Detector1:
         sqrt3 = 1.73205080757
         b = d_min/2
         a = 2*b/sqrt3
-        offset1 = 3*a/2 - a/100000
+        offset1 = 3*a/2
         offset2 = a/2
         k0, k1, k2 = b, a, a
         grid_0_index = point.x // k0
@@ -56,30 +56,31 @@ class Detector1:
             c1, c2, c3 = row[0], row[1], row[2]
             k = -(c2-c1)//3
             l = c1 - 2*k
-            is_valid_coordinate = (c1 == 2*k+l and c2 == -k+l
-                                   and c3 == k+2*l)
+            condition1 = (c1 == 2*k+l)
+            condition2 = (c2 == -k+l)
+            condition3 = (c3 == k+2*l)
+            is_valid_coordinate = (condition1 and condition2 and condition3)
             if is_valid_coordinate:
                 return k, l
+        # Below is a fallback case, might occur when the received point is
+        # exactly a point of a constellation
         c1, c2, c3 = mat[0][0], mat[0][1], mat[0][2]
         k = -(c2-c1)//3
         l = c1 - 2*k
         return k, l
-        # fallback case, might occur when the received point is
-        # exactly a point of a constellation
-        # Usually occurs when c1,c2,c3 are invalid
 
     def detect(self, point: Point):
         k, l = self._point_to_hex_coordinates(point, self.d_min)
         # if l < self.k_bounds[k][0] or l > self.k_bounds[k][1]:
         if (k, l) not in self.hex_to_sym:
             if k < self.k_bounds[0]:
-                symbol = "ERROR: Key out of bounds (K<<)"
+                symbol = "ERR"
             elif k > self.k_bounds[1]:
-                symbol = "ERROR: Key out of bounds (K>>)"
+                symbol = "ERR"
             elif l < self.l_bounds[k][0]:
-                symbol = "ERROR: Key out of bounds (L<<)"
+                symbol = "ERR"
             elif l > self.l_bounds[k][1]:
-                symbol = "ERROR: Key out of bounds (L<<)"
+                symbol = "ERR"
         else:
             symbol = self.hex_to_sym[(k, l)]
 
