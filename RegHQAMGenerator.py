@@ -1,7 +1,5 @@
 from math import floor, log2, sqrt
-from xml.etree.ElementInclude import DEFAULT_MAX_INCLUSION_DEPTH
 
-from matplotlib import pyplot as plt
 from Point import Point
 
 
