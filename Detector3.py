@@ -4,9 +4,8 @@ import numpy as np
 from Detector import MLD
 
 class Detector3:
-    def __init__(self, points, hexGridGenerator):
-        self.d_min = hexGridGenerator.d_min
-        self.hexGridGenerator = hexGridGenerator
+    def __init__(self, points, d_min):
+        self.d_min = d_min       
         self.points = points
 
         self.x_div = self.d_min / 2.0
@@ -22,7 +21,7 @@ class Detector3:
         x_bounds = {-1 : dict(), 1 : dict()}
         w_bounds = {-1 : dict(), 1 : dict()}
 
-        for point in self.hexGridGenerator.outer_points:
+        for point in self.points:
             h = floor(abs(point.y) / self.y_div)
 
             sign_x = np.sign(point.x) if np.sign(point.x) != 0 else 1.0

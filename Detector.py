@@ -13,7 +13,7 @@ class DetectionMethod(metaclass=ABCMeta):
         self.name = name
 
     @abstractmethod
-    def detect(self, received_point: Point, *args) -> Point:
+    def detect(self, received_point: Point) -> Point:
         pass
 
     @abstractmethod
@@ -56,7 +56,7 @@ class DetectionMethod(metaclass=ABCMeta):
 
 
 class MLD(DetectionMethod):
-    def __init__(self, points, name="MLD"):
+    def __init__(self, points, *args, name="MLD"):
         super().__init__(points, name)
 
     def detect(self, received_point: Point) -> Point:
@@ -75,10 +75,10 @@ class MLD(DetectionMethod):
 
 
 class ThrassosDetector(DetectionMethod):
-    def __init__(self, points, hexGridGenerator, name="Thrassos' method"):
+    def __init__(self, points, d_min, name="Thrassos' method"):
         super().__init__(points, name)
         if points:
-            self.hexGridGenerator = hexGridGenerator
+            self.d_min = d_min
             self.Sx = self.create_Sx()
             self.A = self.create_A()
             self.Q = self.initialize_Q()
@@ -138,10 +138,10 @@ class ThrassosDetector(DetectionMethod):
     def detect(self, received_point: Point):
         candidates = set()
         x = self.binary_search(list(self.Sx), received_point.x -
-                               self.hexGridGenerator.d_min, received_point.x + self.hexGridGenerator.d_min)
+                               self.d_min, received_point.x + self.d_min)
         for i in x:
             y = self.binary_search([item[1] for item in self.A[self.Sx[i]]], received_point.y -
-                                   self.hexGridGenerator.d_min, received_point.y + self.hexGridGenerator.d_min)
+                                   self.d_min, received_point.y + self.d_min)
             for j in y:
                 candidates.add(self.A[self.Sx[i]][j][0])
         if not candidates:

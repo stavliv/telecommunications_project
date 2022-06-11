@@ -1,6 +1,7 @@
 from scipy import special as sp
 from math import sqrt, exp
 from HexGenerator import HexGridGenerator
+from RegHQAMGenerator import RegHQAMGenerator
 from Detector import MLD, ThrassosDetector
 from matplotlib import pyplot as plt
 import random
@@ -34,7 +35,7 @@ class Simulation:
     def add_gaussian_noise(self, point, n0):
         return Point(point.x + np.random.normal(loc=0.0, scale=sqrt(n0/2)), point.y + np.random.normal(loc=0.0, scale=sqrt(n0/2)))
 
-    def simulate_single(self, snr, hexGridGenerator, points, energy):
+    def simulate_single(self, snr, d_min, points, energy):
         n0 = energy / (10**(snr / 10))  # n0 must not be in db
 
         sep = dict()
@@ -42,7 +43,7 @@ class Simulation:
         for detection_method in self.detection_methods:
             sep[detection_method] = 0
             detector[detection_method] = detection_method(
-                points, hexGridGenerator)
+                points, d_min)
 
         for step in range(STEPS):
             point = self.pick_point(points)
@@ -57,7 +58,7 @@ class Simulation:
 
     def simulate(self):
         for i in range(len(self.orders)):
-            gen = HexGridGenerator(self.d_min)
+            gen = RegHQAMGenerator(self.d_min)
             points = gen.generate(self.orders[i])
             es = gen.compute_av_energy(points)
 
@@ -65,12 +66,12 @@ class Simulation:
                 print(
                     "order = " + str(self.orders[i]) + "  Es/N0 = " + str(self.snr_values[j]))
                 cur_sep = self.simulate_single(
-                    self.snr_values[j], gen, points, es)
+                    self.snr_values[j], gen.d_min, points, es)
                 for detection_method in self.detection_methods:
                     self.sep[detection_method][i][j] = cur_sep[detection_method]
 
         for detection_method in self.detection_methods:
-            np.savetxt("sep_1" + detection_method([], None).name,
+            np.savetxt("sep_reg" + detection_method([], None).name,
                        self.sep[detection_method])
 
     def compute_nrmse(self):
@@ -224,7 +225,7 @@ class Simulation:
 
         ax.set_yscale('log')
         ax.set_ylim([1e-05, 1])
-        ax.legend()
+        #ax.legend()
         ax.set(xlabel="Es/N0 (dB)", ylabel="Symbol Error Probability")
         fig.savefig("upper_bounds.png")
         plt.show()
@@ -282,9 +283,9 @@ def nrmse(actual: np.ndarray, predicted: np.ndarray):
 if __name__ == '__main__':
     simulation = Simulation([16, 32, 64, 128, 256, 512, 1024], 1, 40, [
                             MLD, ThrassosDetector])
-    #simulation.sep[MLD] = np.loadtxt("sep_1MLD")
-    #simulation.sep[ThrassosDetector] = np.loadtxt("sep_1Thrassos' method")
-    simulation.simulate()
+    simulation.sep[MLD] = np.loadtxt("sep_regMLD")
+    simulation.sep[ThrassosDetector] = np.loadtxt("sep_regThrassos' method")
+    #simulation.simulate()
     simulation.plot_approx()
     simulation.plot_upper_bounds()
     simulation.plot_detection_methods()
