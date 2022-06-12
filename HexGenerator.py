@@ -1,5 +1,6 @@
 from math import sqrt
 from Point import Point
+from matplotlib import pyplot as plt
 
 
 class HexGridGenerator:
@@ -75,6 +76,7 @@ class HexGridGenerator:
         res = float(res) / len(points)
         return res
 
+    @staticmethod
     def plot(self, points):
         for point in points:
             plt.scatter(point.x, point.y, color="black", s=1)
