@@ -75,7 +75,7 @@ class Detector3:
             mld = MLD((cand_1, cand_2))
             nearest_symbol = mld.detect(point)
             if nearest_symbol not in self.points:
-                nearest_symbol = Point(100000, 1000)
+                nearest_symbol = "ERR"
         else:
-            nearest_symbol = Point(100000, 1000)      
+            nearest_symbol = "ERR"      
         return nearest_symbol
