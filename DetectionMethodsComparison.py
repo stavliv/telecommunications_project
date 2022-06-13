@@ -6,6 +6,7 @@ from HexGenerator import HexGridGenerator
 from Detector import MLD, ThrassosDetector
 from Detector1 import Detector1
 from Detector2 import Detector2
+from Detector3 import Detector3
 from time import time_ns
 
 from Polygon import Polygon
@@ -62,7 +63,9 @@ def add_gaussian_noise(point, n0):
 ##################
 
 
-d_min = 0.7
+d_min = 1
+SNR = 20
+n_test_points = 10000
 
 
 m_values = [16*(2**i) for i in range(2, 9)]
@@ -74,21 +77,19 @@ for m in m_values:
     voronoi_polygons = get_voronoi_polygons(points)
 
     detector1 = Detector1(d_min, points)
-    # detector2 = Detector2(d_min, points, voronoi_polygons,
-    #                      max(4, int(sqrt(m)/4)))
     detector2 = Detector2(d_min, points, voronoi_polygons, 64, 6*d_min)
-    thrassos_detector = ThrassosDetector(points, gen)
+    detector3 = Detector3(points, d_min)
+    thrassos_detector = ThrassosDetector(points, d_min)
     mld_detector = MLD(points)
 
-    detectors = [detector1, detector2, thrassos_detector, mld_detector]
+    detectors = [detector1, detector2, detector3,
+                 thrassos_detector, mld_detector]
 
     points_list = list(points)
 
-    SNR = 30
-
     n0 = gen.compute_av_energy(points) / (10**(SNR / 10))
     test_points = [add_gaussian_noise(random.choice(
-        points_list), n0) for _ in range(10000)]
+        points_list), n0) for _ in range(n_test_points)]
 
     time_avg = [None for _ in detectors]
 
@@ -102,7 +103,7 @@ for m in m_values:
         t0 = time_ns()
         for point in test_points:
             s = detector.detect(point)
-            if detector == detector1 and s[0] == "ERR":
+            if (detector == detector1) and s[0] == "ERR":
                 detector2.detect(point)
                 t1 = time_ns()
         t1 = time_ns()
@@ -119,16 +120,18 @@ plt.plot(
 plt.plot(
     m_values, [item[1]/1000 for item in results], label="method 2")
 plt.plot(
-    m_values, [item[2]/1000 for item in results], label="thrassos")
+    m_values, [item[2]/1000 for item in results], label="method 3")
 plt.plot(
-    m_values, [item[3]/1000 for item in results], label="MLD")
+    m_values, [item[3]/1000 for item in results], label="thrassos")
+plt.plot(
+    m_values, [item[4]/1000 for item in results], label="MLD")
 
 
-plt.title("High SNR time comparison")
+plt.title("SNR = " + str(SNR))
 plt.xlabel("Constellation size")
 plt.ylabel("Average symbol detection time (μs)")
 plt.ylim([0, 100])
 # plt.xscale("log")
 plt.legend()
-plt.savefig('SNR_30.png', dpi=300)
+plt.savefig("SNR_" + str(SNR) + ".png", dpi=300)
 plt.show()
