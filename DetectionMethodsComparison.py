@@ -1,12 +1,12 @@
 import random
 
 import numpy as np
-from Point import Point
-from HexGenerator import HexGridGenerator
-from Detector import MLD, ThrassosDetector
-from Detector1 import Detector1
-from Detector2 import Detector2
-from Detector3 import Detector3
+from details.Point import Point
+from details.HexGenerator import HexGridGenerator
+from details.Detector import MLD, ThrassosDetector
+from details.Detector1 import Detector1
+from details.Detector2 import Detector2
+from details.Detector3 import Detector3
 from time import time_ns
 
 from Polygon import Polygon
@@ -65,7 +65,7 @@ def add_gaussian_noise(point, n0):
 
 d_min = 1
 SNR = 20
-n_test_points = 10000
+n_test_points = 1000
 
 
 m_values = [16*(2**i) for i in range(2, 9)]
@@ -127,11 +127,11 @@ plt.plot(
     m_values, [item[4]/1000 for item in results], label="MLD")
 
 
-plt.title("SNR = " + str(SNR))
+plt.title("Method Comparison, SNR = " + str(SNR))
 plt.xlabel("Constellation size")
 plt.ylabel("Average symbol detection time (μs)")
 plt.ylim([0, 100])
 # plt.xscale("log")
 plt.legend()
-plt.savefig("SNR_" + str(SNR) + ".png", dpi=300)
+plt.savefig("Method_Comparison_SNR_" + str(SNR) + ".png", dpi=300)
 plt.show()

@@ -1,14 +1,13 @@
 from scipy import special as sp
 from math import sqrt, exp
-from HexGenerator import HexGridGenerator
-from RegHQAMGenerator import RegHQAMGenerator
-from Detector import MLD, ThrassosDetector
+from details.RegHQAMGenerator import RegHQAMGenerator
+from details.Detector import MLD, ThrassosDetector
+from details.Point import Point
 from matplotlib import pyplot as plt
 import random
 import numpy as np
-from Point import Point
 
-STEPS = 100000
+STEPS = 10000
 
 
 class Simulation:
@@ -116,7 +115,7 @@ class Simulation:
         for i in range(len(self.orders)):
             thr = nrmse(self.sep[MLD][i], thrassos[i])
             rug = nrmse(self.sep[MLD][i], rugini[i])
-            metric[self.orders[i]] = {"thrassos" : thr, "rugini" : rug}
+            metric[self.orders[i]] = {"thrassos": thr, "rugini": rug}
         return metric
 
     def plot_approx(self):
@@ -173,7 +172,7 @@ class Simulation:
 
         ax.set_yscale('log')
         ax.set_ylim([1e-05, 1])
-        #ax.legend()
+        # ax.legend()
         ax.set(xlabel="Es/N0 (dB)", ylabel="Symbol Error Probability")
         fig.savefig("approximations.png")
         plt.show()
@@ -225,7 +224,7 @@ class Simulation:
 
         ax.set_yscale('log')
         ax.set_ylim([1e-05, 1])
-        #ax.legend()
+        # ax.legend()
         ax.set(xlabel="Es/N0 (dB)", ylabel="Symbol Error Probability")
         fig.savefig("upper_bounds.png")
         plt.show()
@@ -245,7 +244,7 @@ class Simulation:
 
         ax.set_yscale('log')
         ax.set_ylim([1e-05, 1])
-        #ax.legend()
+        # ax.legend()
         ax.set(xlabel="Es/N0 (dB)", ylabel="Symbol Error Rate")
         fig.savefig("detection_methods.png")
         plt.show()
@@ -255,11 +254,13 @@ class Simulation:
 def qfunc(x):
     return 0.5-0.5*sp.erf(x/sqrt(2))
 
+
 def thrassos_approx(M, w, a, b, k):
     l1 = (4 * k**2) / (3 * a)
     l2 = (4 * k * (1 - k)) / (sqrt(3) * a)
     l3 = (1 - k)**2 / a
     return ((2*M - b) / (2*M)) * exp(-w*(l1 + l2 + l3)) + (b / M) * qfunc(sqrt(2 * w * l1) + sqrt(2 * w * l3))
+
 
 def rugini_approx(M, w):
     a = 24.0 / (7*M - 4)
@@ -267,14 +268,18 @@ def rugini_approx(M, w):
     Kc = 6 * (1 - M**(-1/2)) ** 2
     return K * qfunc(sqrt(a * w)) + (2/3) * Kc * qfunc(sqrt(2 * a * w / 3)) ** 2 - 2 * Kc * qfunc(sqrt(a * w)) * qfunc(sqrt(a * w / 3))
 
+
 def _error(actual: np.ndarray, predicted: np.ndarray):
     return actual - predicted
+
 
 def mse(actual: np.ndarray, predicted: np.ndarray):
     return np.mean(np.square(_error(actual, predicted)))
 
+
 def rmse(actual: np.ndarray, predicted: np.ndarray):
     return np.sqrt(mse(actual, predicted))
+
 
 def nrmse(actual: np.ndarray, predicted: np.ndarray):
     return rmse(actual, predicted) / (actual.max() - actual.min())
@@ -285,7 +290,7 @@ if __name__ == '__main__':
                             MLD, ThrassosDetector])
     simulation.sep[MLD] = np.loadtxt("sep_regMLD")
     simulation.sep[ThrassosDetector] = np.loadtxt("sep_regThrassos' method")
-    #simulation.simulate()
+    # simulation.simulate()
     simulation.plot_approx()
     simulation.plot_upper_bounds()
     simulation.plot_detection_methods()
