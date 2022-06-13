@@ -3,7 +3,7 @@
 ## Prequesites:
   
   1. Have Python installed
-  2. Install **Numpy**, **Scipy**, **Matplotlib** and **Polygon** libraries. Following commands may be used:
+  2. Install **Numpy**, **Scipy**, **Matplotlib** and **Polygon** libraries. The following commands may be used:
 	
 	pip install numpy
 	
