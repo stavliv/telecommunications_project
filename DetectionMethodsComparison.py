@@ -65,7 +65,7 @@ def add_gaussian_noise(point, n0):
 
 d_min = 1
 SNR = 20
-n_test_points = 1000
+n_test_points = 10000
 
 
 m_values = [16*(2**i) for i in range(2, 9)]
@@ -103,7 +103,7 @@ for m in m_values:
         t0 = time_ns()
         for point in test_points:
             s = detector.detect(point)
-            if (detector == detector1) and s[0] == "ERR":
+            if ((detector == detector1) and (s[0] == "ERR")):
                 detector2.detect(point)
                 t1 = time_ns()
         t1 = time_ns()
