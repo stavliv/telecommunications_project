@@ -23,7 +23,7 @@ class Detector3:
         w_bounds = {-1: dict(), 1: dict()}
 
         for point in self.points:
-            h = floor(abs(point.y) / self.y_div)
+            h = round(abs(point.y) / self.y_div)
 
             sign_x = np.sign(point.x) if np.sign(point.x) != 0 else 1.0
             sign_y = np.sign(point.y) if np.sign(point.y) != 0 else 1.0
