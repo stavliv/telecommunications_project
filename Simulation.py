@@ -1,3 +1,4 @@
+import os.path
 from scipy import special as sp
 from math import sqrt, exp
 from details.RegHQAMGenerator import RegHQAMGenerator
@@ -7,7 +8,7 @@ from matplotlib import pyplot as plt
 import random
 import numpy as np
 
-STEPS = 10000
+STEPS = 1000
 
 
 class Simulation:
@@ -172,7 +173,7 @@ class Simulation:
 
         ax.set_yscale('log')
         ax.set_ylim([1e-05, 1])
-        # ax.legend()
+        ax.legend()
         ax.set(xlabel="Es/N0 (dB)", ylabel="Symbol Error Probability")
         fig.savefig("approximations.png")
         plt.show()
@@ -224,7 +225,7 @@ class Simulation:
 
         ax.set_yscale('log')
         ax.set_ylim([1e-05, 1])
-        # ax.legend()
+        ax.legend()
         ax.set(xlabel="Es/N0 (dB)", ylabel="Symbol Error Probability")
         fig.savefig("upper_bounds.png")
         plt.show()
@@ -288,9 +289,15 @@ def nrmse(actual: np.ndarray, predicted: np.ndarray):
 if __name__ == '__main__':
     simulation = Simulation([16, 32, 64, 128, 256, 512, 1024], 1, 40, [
                             MLD, ThrassosDetector])
+
+    if not (os.path.exists("sep_regMLD") and os.path.exists("sep_regThrassos' method")):
+        print("Result files not found, running simulation")
+        simulation.simulate()
+    else:
+        print("Showing pre-calculated results")
+
     simulation.sep[MLD] = np.loadtxt("sep_regMLD")
     simulation.sep[ThrassosDetector] = np.loadtxt("sep_regThrassos' method")
-    # simulation.simulate()
     simulation.plot_approx()
     simulation.plot_upper_bounds()
     simulation.plot_detection_methods()
