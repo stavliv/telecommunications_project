@@ -18,7 +18,9 @@
 ## How to run:
   
   1. Run **Simulation.py** to get results for part 1 of the assignment (Validation of SEP estimation methods)
+  (delete pre-calculated files "sep_regMLD" and "sep_regThrassos' method to run simulations again, will take a few minutes)
   2. Run **DetectionMethodsComparison.py** to get results for part 2 of the assignment (Comparison of average detection time for different detection methods)
   3. Run **ConstellationPlots.py** to get a visualization of Regular-Irregular HQAM constellations and their decision regions.
 
 Note: Some parameters (such as constellation size, d_min etc.) may be easily edited by adjusting the corresponding variables in the Python code.
+
