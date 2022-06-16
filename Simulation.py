@@ -164,7 +164,7 @@ class Simulation:
                     label=f"{self.orders[i]}-HQAM (sim.)", linestyle="", marker='o')
             if i == len(self.orders) - 1:
                 label_1 = "M-HQAM (approx.)"
-                label_2 = "M-HQAM ([8] approx.)"
+                label_2 = "M-HQAM ([2] approx.)"
             else:
                 label_1 = ""
                 label_2 = ""
